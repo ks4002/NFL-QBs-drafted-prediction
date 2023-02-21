@@ -1,0 +1,156 @@
+---
+title: "QB Data"
+author: "kanyarat Suwannama"
+date: "2/21/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+setwd("/Users/kanyaratsuwannama/Desktop/R_Projects/Storytelling/Group Project/Download/NFL Stats")
+```
+
+*NO COLLEGE STATS FOR 3 UNDRAFTED (Kurt Warner, Jon Kitna, Jay Fiedler)
+
+```{r}
+library(readxl)
+library(tidyverse)
+library(skimr)
+```
+
+load data
+```{r}
+college_2021 <- read_excel("sportsref_download_2021.xls")
+college_2020 <- read_excel("sportsref_download_2020.xls")
+college_2019 <- read_excel("sportsref_download_2019.xls") 
+college_2018 <- read_excel("sportsref_download_2018.xls")
+college_2017 <- read_excel("sportsref_download_2017.xls")
+college_2016 <- read_excel("sportsref_download_2016.xls")
+college_2015 <- read_excel("sportsref_download_2015.xls")
+college_2014 <- read_excel("sportsref_download_2014.xls")
+college_2013 <- read_excel("sportsref_download_2013.xls")
+college_2012 <- read_excel("sportsref_download_2012.xls")
+college_2011 <- read_excel("sportsref_download_2011.xls")
+college_2010 <- read_excel("sportsref_download_2010.xls")
+college_2009 <- read_excel("sportsref_download_2009.xls")
+college_2008 <- read_excel("sportsref_download_2008.xls")
+college_2007 <- read_excel("sportsref_download_2007.xls")
+college_2006 <- read_excel("sportsref_download_2006.xls")
+college_2005 <- read_excel("sportsref_download_2005.xls")
+college_2004 <- read_excel("sportsref_download_2004.xls")
+college_2003 <- read_excel("sportsref_download_2003.xls")
+college_2002 <- read_excel("sportsref_download_2002.xls")
+college_2001 <- read_excel("sportsref_download_2001.xls")
+college_2000 <- read_excel("sportsref_download_2000.xls")
+college_1999 <- read_excel("sportsref_download_1999.xls")
+college_1998 <- read_excel("sportsref_download_1998.xls")
+college_1997 <- read_excel("sportsref_download_1997.xls")
+college_1996 <- read_excel("sportsref_download_1996.xls")
+college_1995 <- read_excel("sportsref_download_1995.xls")
+college_1994 <- read_excel("sportsref_download_1994.xls")
+college_1993 <- read_excel("sportsref_download_1993.xls")
+college_1992 <- read_excel("sportsref_download_1992.xls")
+college_1991 <- read_excel("sportsref_download_1991.xls")
+college_1990 <- read_excel("sportsref_download_1990.xls")
+```
+
+remove players drafted 1990 draft or earlier
+```{r}
+draft_prosp <- draft_prosp %>%
+  filter(draft_year > 1990, position == "Quarterback")
+```
+
+
+NA values for round, pick and overall are for players that were undrafted.. some were signed and have nfl stats.  
+Undrafted players will be round = 8, pick = 50, overall = 300)
+```{r}
+draft_prosp$round <- replace_na(draft_prosp$round, 8)
+draft_prosp$overall <- replace_na(draft_prosp$overall, 300)
+draft_prosp$pick <- replace_na(draft_prosp$pick, 50)
+```
+
+remove columns I don't need
+```{r}
+draft_prosp <- draft_prosp %>%
+  select(draft_year, player_id, player_name, school, school_abbr, pick, overall, round, team, team_abbr, guid, weight, height, pos_rk, ovr_rk, grade)
+```
+
+```{r}
+skim(draft_prosp)
+```
+
+
+remove '+' for HOF designation in NFL data & rename columns
+```{r}
+nfl_career_passer_rate$Player = str_remove(nfl_career_passer_rate$Player, "[+]")
+
+nfl_career_passer_rate <- nfl_career_passer_rate %>%
+  rename(player_name = Player, nfl_pass_rating = Rate)
+```
+
+```{r}
+skim(nfl_career_passer_rate)
+```
+
+
+rbind college data into one file
+```{r}
+all_college <- rbind(college_2021, college_2020, college_2019, college_2018, college_2017, college_2016, college_2015, college_2014, college_2013, college_2012, college_2011, 
+                     college_2010, college_2009, college_2008, college_2007, college_2006, college_2005, college_2004, college_2003, college_2002, college_2001, college_2000,
+                     college_1999, college_1998, college_1997, college_1996, college_1995, college_1994, college_1993, college_1992, college_1991, college_1990)
+
+rm(college_2021, college_2020, college_2019, college_2018, college_2017, college_2016, college_2015, college_2014, college_2013, college_2012, college_2011, 
+                     college_2010, college_2009, college_2008, college_2007, college_2006, college_2005, college_2004, college_2003, college_2002, college_2001, college_2000,
+                     college_1999, college_1998, college_1997, college_1996, college_1995, college_1994, college_1993, college_1992, college_1991, college_1990)
+
+glimpse(all_college)
+```
+
+
+remove "*" from players names & change column names
+```{r}
+all_college$Player = str_remove(all_college$Player, "[*]")
+
+all_college <- all_college %>%
+  rename(season = Season, rank = Rk, player_name = Player, school = School, conf = Conf, games = G, cmp = Cmp, pass_att = Att...8, cmp_pct = Pct, pass_yds = Yds...10, 
+         pass_yds_pa = 'Y/A', adj_pass_yds_pa = 'AY/A', pass_td = TD...13, int = Int, rate = Rate, rush_att = Att...16, rush_yds = Yds...17, avg_rush_yds_pa = Avg, 
+         rush_td = TD...19)
+```
+
+
+calculate and add college passer rating and relocate in dataframe
+```{r}
+all_college <- all_college %>%
+  mutate(col_pass_rating = round((((((cmp/pass_att)-.3)*5 + ((pass_yds/pass_att)-3)*.25 + (pass_td/pass_att)*20 + (2.375 - ((int/pass_att)*25))) / 6) *100), 2))
+
+all_college <- all_college %>%
+  relocate(col_pass_rating, .before = rush_att)
+```
+
+skim all_college
+```{r}
+skim(all_college) 
+```
+
+
+view top 20 by col-pass_rating
+```{r}
+all_college %>%
+  select(player_name, school, col_pass_rating) %>%
+  arrange(desc(col_pass_rating)) %>%
+  top_n(20)
+```
+
+check for specific player
+```{r}
+all_college %>%
+  filter(player_name == "Tony Romo") %>%
+  count()
+```
+
+
+
+
